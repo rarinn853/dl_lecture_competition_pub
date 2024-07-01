@@ -118,6 +118,9 @@ def main(args: DictConfig):
     #       Model
     # ------------------
     model = EVFlowNet(args.train).to(device)
+    if Path(args.train.init_model).exists():
+        print(f"- reading pretrained model: {args.train.init_model}")
+        model.load_state_dict(torch.load(Path(args.train.init_model)))
 
     # ------------------
     #   optimizer
