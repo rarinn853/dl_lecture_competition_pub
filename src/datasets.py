@@ -361,6 +361,11 @@ class Sequence(Dataset):
 
     def __getitem__(self, idx):
         sample = self.get_data(idx)
+        if self.transforms:
+            sample['event_volume'] = self.transforms(sample['event_volume'])
+            if 'flow_gt' in sample:
+                sample['flow_gt'][0] = self.transforms(sample['flow_gt'][0])
+                sample['flow_gt'][1] = self.transforms(sample['flow_gt'][1])
         return sample
 
     def get_voxel_grid(self, idx):
@@ -528,7 +533,7 @@ class SequenceRecurrent(Sequence):
 
 class DatasetProvider:
     def __init__(self, dataset_path: Path, representation_type: RepresentationType, delta_t_ms: int = 100, num_bins=4,
-                config=None, visualize=False):
+                config=None, visualize=False, train_transforms=[]):
         test_path = Path(os.path.join(dataset_path, 'test'))
         train_path = Path(os.path.join(dataset_path, 'train'))
         assert dataset_path.is_dir(), str(dataset_path)
@@ -559,7 +564,7 @@ class DatasetProvider:
             extra_arg = dict()
             train_sequences.append(Sequence(Path(train_path) / seq,
                                    representation_type=representation_type, mode="train",
-                                   load_gt=True, **extra_arg))
+                                   load_gt=True, transforms=train_transforms, **extra_arg))
             self.train_dataset: torch.utils.data.ConcatDataset[Sequence] = torch.utils.data.ConcatDataset(train_sequences)
 
     def get_test_dataset(self):

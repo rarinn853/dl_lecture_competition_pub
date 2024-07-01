@@ -2,6 +2,7 @@ import torch
 import hydra
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader
+from torchvision import transforms
 import random
 import numpy as np
 from src.models.evflownet import EVFlowNet
@@ -74,11 +75,17 @@ def main(args: DictConfig):
     # ------------------
     #    Dataloader
     # ------------------
+    train_transforms = transforms.Compose([
+        transforms.RandomRotation(degrees=15),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+    ])
     loader = DatasetProvider(
         dataset_path=Path(args.dataset_path),
         representation_type=RepresentationType.VOXEL,
         delta_t_ms=100,
-        num_bins=4
+        num_bins=4,
+        train_transforms=train_transforms
     )
     train_set = loader.get_train_dataset()
     test_set = loader.get_test_dataset()
